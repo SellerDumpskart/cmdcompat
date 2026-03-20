@@ -55,17 +55,19 @@ Write-Host "  [3/3] Saved to: $PROFILE" -ForegroundColor Cyan
 
 Write-Host ""
 Write-Host "  ==============================================" -ForegroundColor Green
-Write-Host "   Installation Complete! 200+ commands ready   " -ForegroundColor Green
+Write-Host "   Installation Complete! Remote-tool safe      " -ForegroundColor Green
 Write-Host "  ==============================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "  Test commands:" -ForegroundColor White
+Write-Host "  Native commands work as-is:" -ForegroundColor White
 Write-Host "    ipconfig /all" -ForegroundColor Gray
-Write-Host "    tasklist /FI ""IMAGENAME eq explorer.exe""" -ForegroundColor Gray
-Write-Host "    net user" -ForegroundColor Gray
-Write-Host "    flushdns" -ForegroundColor Gray
-Write-Host "    ports" -ForegroundColor Gray
 Write-Host "    whoami /all" -ForegroundColor Gray
-Write-Host "    c start """" notepad" -ForegroundColor Gray
+Write-Host "    ping google.com" -ForegroundColor Gray
 Write-Host ""
-Write-Host "  Full command list: https://github.com/SellerDumpskart/cmdcompat" -ForegroundColor DarkGray
+Write-Host "  New shortcuts available:" -ForegroundColor White
+Write-Host "    flushdns, ports, admins, hotfixes" -ForegroundColor Gray
+Write-Host "    rdpon, rdpoff, defenderoff, defenderon" -ForegroundColor Gray
+Write-Host "    gpforce, gpolist, regquery, regadd" -ForegroundColor Gray
+Write-Host "    c start """" notepad  (any CMD command)" -ForegroundColor Gray
+Write-Host ""
+Write-Host "  Full list: https://github.com/SellerDumpskart/cmdcompat" -ForegroundColor DarkGray
 Write-Host ""
