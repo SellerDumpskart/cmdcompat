@@ -22,14 +22,12 @@ if ($content -match "CMD Compatibility Layer") {
 
     if ($cleaned.Length -gt 0) {
         $cleaned | Set-Content $PROFILE -Force
-        Write-Host "  Removed CMD Compatibility Layer from profile." -ForegroundColor Green
-        Write-Host "  Your other profile settings were preserved." -ForegroundColor Green
+        Write-Host "  Removed. Your other profile settings were preserved." -ForegroundColor Green
     } else {
         Remove-Item $PROFILE -Force
-        Write-Host "  Removed profile file (it only contained CMD Compatibility)." -ForegroundColor Green
+        Write-Host "  Removed profile file." -ForegroundColor Green
     }
 
-    Write-Host ""
     Write-Host "  Restart PowerShell to complete uninstall." -ForegroundColor Cyan
 } else {
     Write-Host "  CMD Compatibility Layer not found in profile." -ForegroundColor Red
