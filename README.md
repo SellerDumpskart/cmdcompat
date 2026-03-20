@@ -1,6 +1,6 @@
 # CMD Compatibility Layer for PowerShell
 
-Use **200+ CMD commands** directly in PowerShell without any syntax changes. Built for IT admins, sysadmins, and remote management workflows.
+Use CMD built-in commands and 150+ shortcuts directly in PowerShell. **Remote management tool safe** — doesn't break native `.exe` command output.
 
 ## One-Line Install
 
@@ -27,33 +27,31 @@ Open PowerShell on the target machine and paste:
 . $PROFILE
 ```
 
-## Categories Covered
-
-- File and Folder (23 commands)
-- Network Core (17 commands)
-- Network Diagnostics (23 commands)
-- Network Firewall (13 commands)
-- System and Process (25 commands)
-- Disk and Storage (14 commands)
-- Registry (17 commands)
-- Group Policy (16 commands)
-- Security and Permissions (19 commands)
-- Active Directory (27 commands)
-- Certificates and Crypto (10 commands)
-- Windows Update and Patching (20 commands)
-- Hyper-V and Virtualization (5 commands)
-- WSL and Subsystem (8 commands)
-- Package Managers (10 commands)
-- User Sessions (8 commands)
-- Printing and Devices (7 commands)
-- Remote Management (10 commands)
-- Diagnostics (13 commands)
-- Bypass and Quick Actions (30+ commands)
-- PowerShell-to-CMD Bridge (13 commands)
-
 ## How It Works
 
-Each CMD command is wrapped as a PowerShell function that passes arguments through `cmd.exe /c`. The functions are saved to your PowerShell profile (`$PROFILE`) so they load automatically on every session, including remote management sessions running as SYSTEM.
+**Native .exe commands are NOT overridden** — `ipconfig`, `whoami`, `ping`, `tracert`, `netstat`, `gpupdate`, `certutil`, etc. all work exactly as before. This ensures compatibility with remote management tools (RMM, SCCM, Intune, etc.) that can't capture `cmd.exe /c` output.
+
+**Only CMD built-in commands** (which have no `.exe`) are wrapped: `move`, `copy`, `del`, `ren`, `type`, `mklink`, `assoc`, `ftype`, `vol`, `ver`, `set`, etc.
+
+**150+ shortcut commands** are added for common admin tasks — these call `.exe` directly, not through `cmd.exe`.
+
+## Categories
+
+- CMD Built-in Wrappers (move, copy, del, type, etc.)
+- Network Shortcuts (flushdns, ports, netreset, showip, etc.)
+- Firewall Shortcuts (netshfwon/off, fwstatus, etc.)
+- Process Shortcuts (fkill, fpid)
+- System Info (localusers, admins, services, drivers, etc.)
+- Group Policy (gpforce, gpolist, gpohtml, etc.)
+- Registry (regquery, regadd, regdelete, regbackup, etc.)
+- Active Directory (domaininfo, dclist, fsmo, replstatus, etc.)
+- Certificates (showcerts, rootcerts, hashfile, etc.)
+- Windows Update (wuscan, wuforce, wureset, hotfixes, etc.)
+- Bypass Toggles (defenderoff/on, uacoff/on, rdpon/off, nlaoff/on, etc.)
+- Boot & Power (safeboot, hibernateoff, sleepoff, fastbootoff, etc.)
+- WSL & Package Managers (wsllist, wingetinstall, etc.)
+- Cleanup (cleartemp, clearevt, wucleardownload, etc.)
+- Bridge Utilities (c, run, opencmd, bg, bgmin)
 
 ## Requirements
 
