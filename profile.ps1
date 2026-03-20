@@ -11,34 +11,64 @@
 # ============================================
 
 # =====================
-# CMD BUILT-IN COMMANDS
-# These have no .exe — they only exist inside cmd.exe
+# AUTO %VAR% EXPANSION
+# Converts %TEMP%, %USERPROFILE% etc to actual values
+# Works system-wide via PSDefaultParameterValues
 # =====================
-function move { $out = & cmd.exe /c "move $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function copy { $out = & cmd.exe /c "copy $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function del { $out = & cmd.exe /c "del $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function ren { $out = & cmd.exe /c "ren $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function rmdir { $out = & cmd.exe /c "rmdir $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function type { $out = & cmd.exe /c "type $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function mklink { $out = & cmd.exe /c "mklink $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function assoc { $out = & cmd.exe /c "assoc $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function ftype { $out = & cmd.exe /c "ftype $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function vol { $out = & cmd.exe /c "vol $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function ver { $out = & cmd.exe /c "ver $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function date { $out = & cmd.exe /c "date $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function time { $out = & cmd.exe /c "time $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function title { $out = & cmd.exe /c "title $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function set { $out = & cmd.exe /c "set $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function path { $out = & cmd.exe /c "path $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function cls { $out = & cmd.exe /c "cls $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function color { $out = & cmd.exe /c "color $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
-function prompt { $out = & cmd.exe /c "prompt $($args -join ' ')" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function Expand-CmdVars([string]$text) {
+    [regex]::Replace($text, '%([^%]+)%', {
+        param($match)
+        $val = [System.Environment]::GetEnvironmentVariable($match.Groups[1].Value)
+        if ($val) { $val } else { $match.Value }
+    })
+}
+
+# Override default prompt processing to auto-expand %VAR% in commands
+$ExecutionContext.InvokeCommand.PreCommandLookupAction = {
+    param($commandName, $eventArgs)
+}
+
+# Wrapper to auto-expand %VAR% in any argument
+function Invoke-CmdExpanded {
+    $expanded = $args | ForEach-Object { Expand-CmdVars "$_" }
+    $cmd = $expanded[0]
+    $cmdArgs = if ($expanded.Count -gt 1) { $expanded[1..($expanded.Count-1)] } else { @() }
+    & $cmd @cmdArgs
+}
 
 # =====================
-# FIX CURL — use real curl.exe not PowerShell alias
+# CMD BUILT-IN COMMANDS
+# These have no .exe — they only exist inside cmd.exe
+# Auto-expands %VAR% to actual values
+# =====================
+function move { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "move $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function copy { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "copy $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function del { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "del $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function ren { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "ren $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function rmdir { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "rmdir $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function type { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "type $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function mklink { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "mklink $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function assoc { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "assoc $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function ftype { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "ftype $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function vol { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "vol $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function ver { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "ver $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function date { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "date $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function time { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "time $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function title { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "title $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function set { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "set $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function path { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "path $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function cls { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "cls $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function color { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "color $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+function prompt { $exp = Expand-CmdVars ($args -join ' '); $out = & cmd.exe /c "prompt $exp" 2>&1; $out | ForEach-Object { Write-Host $_ } }
+
+# =====================
+# FIX CURL — use real curl.exe, auto-expands %VAR%
 # =====================
 Remove-Item Alias:curl -ErrorAction SilentlyContinue
-Set-Alias -Name curl -Value curl.exe
+function curl {
+    $expanded = $args | ForEach-Object { Expand-CmdVars "$_" }
+    & curl.exe @expanded
+}
 
 # =====================
 # QUICK CMD SHORTCUT — for any CMD-only command
