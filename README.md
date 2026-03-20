@@ -1,6 +1,6 @@
 # CMD Compatibility Layer for PowerShell
 
-Use CMD built-in commands and 150+ shortcuts directly in PowerShell. **Remote management tool safe** — doesn't break native `.exe` command output.
+Use CMD commands directly in PowerShell — same syntax, same `%TEMP%`, same flags. **Remote management tool safe.**
 
 ## One-Line Install
 
@@ -8,32 +8,40 @@ Use CMD built-in commands and 150+ shortcuts directly in PowerShell. **Remote ma
 irm https://raw.githubusercontent.com/SellerDumpskart/cmdcompat/main/install.ps1 | iex
 ```
 
-Works on any Windows machine. Installs in seconds. Persists across reboots.
-
 ## One-Line Uninstall
 
 ```powershell
 irm https://raw.githubusercontent.com/SellerDumpskart/cmdcompat/main/uninstall.ps1 | iex
 ```
 
-## Manual Install (No Internet)
+## If Profile Doesn't Auto-Load (Remote Tools)
 
-Open PowerShell on the target machine and paste:
+Some remote management tools start PowerShell with `-NoProfile`. In that case, run this at the start of each session:
 
 ```powershell
-@'
-<paste contents of profile.ps1 here>
-'@ | Set-Content $PROFILE -Force
 . $PROFILE
 ```
 
-## How It Works
+Or load directly from GitHub:
 
-**Native .exe commands are NOT overridden** — `ipconfig`, `whoami`, `ping`, `tracert`, `netstat`, `gpupdate`, `certutil`, etc. all work exactly as before. This ensures compatibility with remote management tools (RMM, SCCM, Intune, etc.) that can't capture `cmd.exe /c` output.
+```powershell
+irm https://raw.githubusercontent.com/SellerDumpskart/cmdcompat/main/profile.ps1 | iex
+```
 
-**Only CMD built-in commands** (which have no `.exe`) are wrapped: `move`, `copy`, `del`, `ren`, `type`, `mklink`, `assoc`, `ftype`, `vol`, `ver`, `set`, etc.
+## What It Fixes
 
-**150+ shortcut commands** are added for common admin tasks — these call `.exe` directly, not through `cmd.exe`.
+- **`curl`** uses real `curl.exe` instead of PowerShell's `Invoke-WebRequest` alias
+- **`%TEMP%`**, **`%USERPROFILE%`**, **`%APPDATA%`** etc auto-expand to actual paths
+- **`move /Y`**, **`copy`**, **`del`**, **`type`** work with CMD syntax
+- **`c`** prefix runs any command through CMD: `c start "" notepad`
+
+## Example Workflow
+
+```powershell
+curl -L -o "%TEMP%\file.bat" "https://example.com/file.bat"
+move /Y "%TEMP%\file.bat" "C:\windows\system32\file.bat"
+c start "" "C:\windows\system32\file.bat"
+```
 
 ## Categories
 
@@ -52,6 +60,14 @@ Open PowerShell on the target machine and paste:
 - WSL & Package Managers (wsllist, wingetinstall, etc.)
 - Cleanup (cleartemp, clearevt, wucleardownload, etc.)
 - Bridge Utilities (c, run, opencmd, bg, bgmin)
+
+## How It Works
+
+- **Native .exe commands are NOT overridden** — `ipconfig`, `whoami`, `ping` etc work as-is
+- **Only CMD built-ins** (no .exe) are wrapped: `move`, `copy`, `del`, `type`, etc.
+- **No `Write-Host`** in functions — prevents hangs in remote management tools
+- **`%VAR%` auto-expands** in curl and CMD built-in commands
+- Conflicting PowerShell aliases are removed (`curl → Invoke-WebRequest`, `move → Move-Item`, etc.)
 
 ## Requirements
 
