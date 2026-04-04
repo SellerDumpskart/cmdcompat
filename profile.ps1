@@ -37,14 +37,17 @@ if (Get-Module -ListAvailable -Name PSReadLine) {
         $cursor = $null
         [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
         if ($line -match '&&') {
-            $commands = $line -split '&&'
             [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
-            $script = ($commands | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' } | ForEach-Object {
-                "& cmd.exe /c '$(Expand-CmdVars $_)'; if (`$LASTEXITCODE -ne 0) { return }"
-            }) -join "`n"
-            [Microsoft.PowerShell.PSConsoleReadLine]::Insert($script)
+            [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+            $commands = $line -split '&&' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
+            foreach ($cmd in $commands) {
+                $expanded = Expand-CmdVars $cmd
+                & cmd.exe /c $expanded
+                if ($LASTEXITCODE -ne 0) { break }
+            }
+        } else {
+            [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
         }
-        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
     }
 }
 
