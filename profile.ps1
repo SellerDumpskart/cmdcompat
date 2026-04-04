@@ -26,6 +26,29 @@ function Expand-CmdVars([string]$text) {
 }
 
 # =====================
+# && OPERATOR SUPPORT (PowerShell 5.1 compatible)
+# Intercepts Enter key — if line contains &&, splits and runs
+# each segment through CMD, stopping on first failure.
+# Works like CMD/bash: cmd1 && cmd2 && cmd3
+# =====================
+if (Get-Module -ListAvailable -Name PSReadLine) {
+    Set-PSReadLineKeyHandler -Key 'Enter' -ScriptBlock {
+        $line = $null
+        $cursor = $null
+        [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+        if ($line -match '&&') {
+            $commands = $line -split '&&'
+            [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+            $script = ($commands | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' } | ForEach-Object {
+                "& cmd.exe /c '$(Expand-CmdVars $_)'; if (`$LASTEXITCODE -ne 0) { return }"
+            }) -join "`n"
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert($script)
+        }
+        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
+    }
+}
+
+# =====================
 # CURL — real curl.exe with %VAR% expansion
 # =====================
 function curl {
