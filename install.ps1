@@ -21,6 +21,12 @@ try {
     return
 }
 
+# Fix empty $PROFILE — happens when PowerShell runs with -NoProfile (remote tools, services)
+if ([string]::IsNullOrEmpty($PROFILE)) {
+    $PROFILE = "$env:USERPROFILE\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1"
+    Write-Host "  [!] `$PROFILE was empty — using default path" -ForegroundColor Yellow
+}
+
 # Create profile directory if needed
 $profileDir = Split-Path $PROFILE
 if (!(Test-Path $profileDir)) {
@@ -48,7 +54,11 @@ $content | Set-Content $PROFILE -Force
 Write-Host "  [3/3] Saved to: $PROFILE" -ForegroundColor Cyan
 
 # Load it immediately
-. $PROFILE
+if (![string]::IsNullOrEmpty($PROFILE) -and (Test-Path $PROFILE)) {
+    . $PROFILE
+} else {
+    Write-Host "  [!] Could not auto-load profile. Run: . `$PROFILE" -ForegroundColor Yellow
+}
 
 Write-Host ""
 Write-Host "  ==============================================" -ForegroundColor Green
