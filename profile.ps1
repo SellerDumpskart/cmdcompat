@@ -27,27 +27,15 @@ function Expand-CmdVars([string]$text) {
 
 # =====================
 # && OPERATOR SUPPORT (PowerShell 5.1 compatible)
-# Intercepts Enter key — if line contains &&, splits and runs
-# each segment through CMD, stopping on first failure.
-# Works like CMD/bash: cmd1 && cmd2 && cmd3
+# Usage: && "cmd1" "cmd2" "cmd3"
+# Runs each command through CMD, stops on first failure.
+# Example: && "mkdir C:\test" "echo done"
 # =====================
-if (Get-Module -ListAvailable -Name PSReadLine) {
-    Set-PSReadLineKeyHandler -Key 'Enter' -ScriptBlock {
-        $line = $null
-        $cursor = $null
-        [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
-        if ($line -match '&&') {
-            [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
-            [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
-            $commands = $line -split '&&' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
-            foreach ($cmd in $commands) {
-                $expanded = Expand-CmdVars $cmd
-                & cmd.exe /c $expanded
-                if ($LASTEXITCODE -ne 0) { break }
-            }
-        } else {
-            [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
-        }
+function && {
+    foreach ($cmd in $args) {
+        $expanded = Expand-CmdVars "$cmd"
+        & cmd.exe /c $expanded
+        if ($LASTEXITCODE -ne 0) { return }
     }
 }
 
